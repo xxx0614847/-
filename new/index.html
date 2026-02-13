@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="使用邮箱验证码快速登录或注册">
+    <title>邮箱验证码登录</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-purple: #9d00ff;
+            --neon-blue: #0080ff;
+            --neon-yellow: #ffff00;
+            --dark-bg: #0a0a1f;
+            --darker-bg: #050510;
+            --card-bg: rgba(10, 10, 31, 0.85);
+        }
+        
+        body {
+            font-family: 'VT323', monospace;
+            background: var(--dark-bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+        }
+        
+        /* 赛博城市背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(180deg, 
+                    rgba(157, 0, 255, 0.1) 0%,
+                    rgba(0, 128, 255, 0.1) 50%,
+                    rgba(255, 0, 255, 0.1) 100%
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 255, 255, 0.03) 2px,
+                    rgba(0, 255, 255, 0.03) 4px
+                );
+            animation: bgShift 20s ease-in-out infinite;
+            z-index: 0;
+        }
+        
+        @keyframes bgShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(30deg); }
+        }
+        
+        /* 网格地板效果 */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: 
+                linear-gradient(90deg, transparent 49%, var(--neon-cyan) 49%, var(--neon-cyan) 51%, transparent 51%),
+                linear-gradient(0deg, transparent 49%, var(--neon-cyan) 49%, var(--neon-cyan) 51%, transparent 51%);
+            background-size: 50px 50px;
+            opacity: 0.1;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: bottom;
+            animation: gridMove 10s linear infinite;
+            z-index: 0;
+        }
+        
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 50px; }
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-card {
+            background: var(--card-bg);
+            border: 3px solid var(--neon-cyan);
+            padding: 45px 80px;
+            width: 100%;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.5),
+                0 0 60px rgba(255, 0, 255, 0.3),
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* 卡片边角装饰 */
+        .auth-card::before,
+        .auth-card::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--neon-pink);
+            animation: cornerPulse 2s ease-in-out infinite;
+        }
+        
+        .auth-card::before {
+            top: -3px;
+            left: -3px;
+            border-right: none;
+            border-bottom: none;
+        }
+        
+        .auth-card::after {
+            bottom: -3px;
+            right: -3px;
+            border-left: none;
+            border-top: none;
+        }
+        
+        @keyframes cornerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 28px;
+            color: var(--neon-cyan);
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 
+                0 0 10px var(--neon-cyan),
+                0 0 20px var(--neon-cyan),
+                0 0 30px var(--neon-cyan),
+                0 0 40px var(--neon-pink);
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes titleGlow {
+            0%, 100% { 
+                text-shadow: 
+                    0 0 10px var(--neon-cyan),
+                    0 0 20px var(--neon-cyan),
+                    0 0 30px var(--neon-cyan),
+                    0 0 40px var(--neon-pink);
+            }
+            50% { 
+                text-shadow: 
+                    0 0 20px var(--neon-cyan),
+                    0 0 30px var(--neon-cyan),
+                    0 0 40px var(--neon-pink),
+                    0 0 50px var(--neon-purple);
+            }
+        }
+        
+        .subtitle {
+            color: var(--neon-pink);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 22px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+        
+        .form-group {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            color: var(--neon-yellow);
+            font-weight: 400;
+            font-size: 22px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 0 0 10px var(--neon-yellow);
+        }
+        
+        input {
+            width: 100%;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--neon-purple);
+            color: var(--neon-cyan);
+            font-size: 24px;
+            font-family: 'VT323', monospace;
+            font-weight: 400;
+            transition: all 0.3s;
+            outline: none;
+            box-shadow: 
+                inset 0 0 10px rgba(157, 0, 255, 0.3),
+                0 0 10px rgba(157, 0, 255, 0.2);
+        }
+        
+        input::placeholder {
+            color: rgba(0, 255, 255, 0.4);
+            font-weight: 400;
+        }
+        
+        input:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 
+                0 0 20px var(--neon-cyan),
+                inset 0 0 20px rgba(0, 255, 255, 0.2);
+            background: rgba(0, 255, 255, 0.05);
+        }
+        
+        input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .otp-group {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .otp-group input {
+            flex: 1;
+        }
+        
+        button {
+            padding: 18px 28px;
+            background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-purple) 100%);
+            color: white;
+            border: 2px solid var(--neon-pink);
+            font-size: 18px;
+            font-weight: 400;
+            font-family: 'Press Start 2P', cursive;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 
+                0 0 20px var(--neon-pink),
+                inset 0 0 20px rgba(255, 0, 255, 0.3);
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: buttonShine 3s linear infinite;
+        }
+        
+        @keyframes buttonShine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        button:hover:not(:disabled) {
+            box-shadow: 
+                0 0 30px var(--neon-pink),
+                0 0 50px var(--neon-purple),
+                inset 0 0 30px rgba(255, 0, 255, 0.5);
+            transform: translateY(-2px) scale(1.02);
+        }
+        
+        button:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        button:disabled {
+            background: rgba(100, 100, 100, 0.3);
+            border-color: rgba(100, 100, 100, 0.5);
+            color: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
+            box-shadow: none;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-blue) 100%);
+            border-color: var(--neon-cyan);
+            font-size: 18px;
+            margin-top: 10px;
+            box-shadow: 
+                0 0 20px var(--neon-cyan),
+                inset 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            box-shadow: 
+                0 0 40px var(--neon-cyan),
+                0 0 60px var(--neon-blue),
+                inset 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+        
+        .error-message {
+            display: block;
+            color: var(--neon-pink);
+            font-size: 18px;
+            margin-top: 10px;
+            min-height: 22px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+        
+        .message {
+            margin-top: 25px;
+            padding: 18px 22px;
+            font-size: 20px;
+            text-align: center;
+            display: none;
+            border: 2px solid;
+            font-weight: 400;
+            letter-spacing: 1px;
+            animation: messageSlide 0.5s ease-out;
+        }
+        
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.success {
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--neon-cyan);
+            border-color: var(--neon-cyan);
+            display: block;
+            box-shadow: 
+                0 0 20px var(--neon-cyan),
+                inset 0 0 20px rgba(0, 255, 255, 0.2);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+        
+        .message.error {
+            background: rgba(255, 0, 255, 0.1);
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+            display: block;
+            box-shadow: 
+                0 0 20px var(--neon-pink),
+                inset 0 0 20px rgba(255, 0, 255, 0.2);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+        
+        .message.info {
+            background: rgba(157, 0, 255, 0.1);
+            color: var(--neon-purple);
+            border-color: var(--neon-purple);
+            display: block;
+            box-shadow: 
+                0 0 20px var(--neon-purple),
+                inset 0 0 20px rgba(157, 0, 255, 0.2);
+            text-shadow: 0 0 10px var(--neon-purple);
+        }
+        
+        /* 像素化数据流 */
+        .data-stream {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.15;
+        }
+        
+        .data-stream span {
+            position: absolute;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            font-weight: bold;
+            animation: dataFall linear infinite;
+        }
+        
+        .data-stream span:nth-child(odd) {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+        
+        .data-stream span:nth-child(even) {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+        
+        @keyframes dataFall {
+            0% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+        
+        /* 扫描线效果 */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 255, 0.05) 2px,
+                rgba(0, 255, 255, 0.05) 4px
+            );
+            pointer-events: none;
+            z-index: 999;
+            animation: scanlineMove 8s linear infinite;
+        }
+        
+        @keyframes scanlineMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                max-width: 90%;
+            }
+            
+            .auth-card {
+                padding: 35px 25px;
+            }
+            
+            h1 {
+                font-size: 22px;
+                letter-spacing: 2px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+            }
+            
+            label {
+                font-size: 16px;
+            }
+            
+            input {
+                font-size: 20px;
+                padding: 16px;
+            }
+            
+            button {
+                font-size: 14px;
+                padding: 16px 20px;
+            }
+            
+            .submit-btn {
+                font-size: 16px;
+            }
+            
+            .otp-group {
+                flex-direction: column;
+            }
+            
+            .otp-group button {
+                width: 100%;
+            }
+        }
+        
+        .hidden { display: none; }
+
+    </style>
+</head>
+<body>
+    <!-- 扫描线效果 -->
+    <div class="scanline"></div>
+    
+    <!-- 数据流背景效果 -->
+    <div class="data-stream" id="dataStream"></div>
+    
+    <div class="container">
+        <div class="auth-card">
+            <!-- 登录页面 -->
+            <div id="loginPage">
+                <h1>欢迎访问</h1>
+                <p class="subtitle">邮箱验证登录</p>
+                
+                <!-- 登录方式选择 -->
+                <div class="form-group">
+                    <label>登录方式</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button type="button" id="otpModeBtn" onclick="switchToOtpMode()" style="flex: 1;">验证码登录</button>
+                        <button type="button" id="passwordModeBtn" onclick="switchToPasswordMode()" style="flex: 1;">密码登录</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginEmail">邮箱地址</label>
+                    <input type="email" id="loginEmail" placeholder="请输入邮箱地址" />
+                    <span class="error-message" id="loginEmailError"></span>
+                </div>
+                
+                <!-- 验证码登录区域 -->
+                <div id="otpLoginSection">
+                    <div class="form-group">
+                        <label for="loginOtp">验证码</label>
+                        <div class="otp-group">
+                            <input type="text" id="loginOtp" placeholder="请输入8位验证码" maxlength="8" disabled />
+                            <button id="sendOtpBtn" onclick="sendLoginOTP()">获取验证码</button>
+                        </div>
+                        <span class="error-message" id="loginOtpError"></span>
+                    </div>
+                </div>
+                
+                <!-- 密码登录区域 -->
+                <div id="passwordLoginSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="loginPassword">密码</label>
+                        <input type="password" id="loginPassword" placeholder="请输入密码" />
+                        <span class="error-message" id="loginPasswordError"></span>
+                    </div>
+                </div>
+                
+                <button class="submit-btn" id="loginBtn" onclick="handleLogin()" disabled>登录</button>
+                
+                <div style="text-align: center; margin-top: 25px;">
+                    <span style="color: var(--neon-cyan); font-size: 20px; letter-spacing: 1px;">还没有账号？</span>
+                    <button onclick="showRegisterPage()" style="background: transparent; border: none; color: var(--neon-pink); text-decoration: underline; cursor: pointer; font-size: 20px; padding: 0 10px; font-family: 'VT323', monospace;">立即注册</button>
+                </div>
+            </div>
+            
+            <!-- 注册页面 -->
+            <div id="registerPage" style="display: none;">
+                <h1>新用户注册</h1>
+                <p class="subtitle">验证邮箱并设置密码</p>
+                
+                <div class="form-group">
+                    <label for="registerEmail">邮箱地址</label>
+                    <input type="email" id="registerEmail" placeholder="请输入邮箱地址" />
+                    <span class="error-message" id="registerEmailError"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerOtp">验证码</label>
+                    <div class="otp-group">
+                        <input type="text" id="registerOtp" placeholder="请输入8位验证码" maxlength="8" disabled />
+                        <button id="sendRegisterOtpBtn" onclick="sendRegisterOTP()">获取验证码</button>
+                    </div>
+                    <span class="error-message" id="registerOtpError"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">设置密码</label>
+                    <input type="password" id="registerPassword" placeholder="请设置密码（至少6位）" />
+                    <span class="error-message" id="registerPasswordError"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerConfirmPassword">确认密码</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="请再次输入密码" />
+                    <span class="error-message" id="registerConfirmPasswordError"></span>
+                </div>
+                
+                <button class="submit-btn" id="registerBtn" onclick="handleRegister()" disabled>完成注册</button>
+                
+                <div style="text-align: center; margin-top: 25px;">
+                    <span style="color: var(--neon-cyan); font-size: 20px; letter-spacing: 1px;">已有账号？</span>
+                    <button onclick="showLoginPage()" style="background: transparent; border: none; color: var(--neon-pink); text-decoration: underline; cursor: pointer; font-size: 20px; padding: 0 10px; font-family: 'VT323', monospace;">返回登录</button>
+                </div>
+            </div>
+            
+            <div id="sendResult" class="message"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const CONFIG = {
+            url: 'https://zgfyqhhvotaunytjtcxi.supabase.co',
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnZnlxaGh2b3RhdW55dGp0Y3hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MDkxMDIsImV4cCI6MjA4NjM4NTEwMn0.C9mSuankyh-IvSlC91smtpWnodfyGcM7gylmFZChJ4A'
+        };
+        
+        let supabaseClient = window.supabase.createClient(CONFIG.url, CONFIG.key);
+        let loginCountdown = 0;
+        let registerCountdown = 0;
+        let loginTimer = null;
+        let registerTimer = null;
+        let loginMode = 'otp'; // 'otp' or 'password'
+        
+        function showMessage(text, type) {
+            const msg = document.getElementById('sendResult');
+            msg.textContent = text;
+            msg.className = `message ${type}`;
+        }
+        
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+        
+        // 切换到登录页面
+        function showLoginPage() {
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('registerPage').style.display = 'none';
+            showMessage('', '');
+            clearAllInputs('register');
+        }
+        
+        // 切换到注册页面
+        function showRegisterPage() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('registerPage').style.display = 'block';
+            showMessage('', '');
+            clearAllInputs('login');
+        }
+        
+        // 清空输入框
+        function clearAllInputs(page) {
+            if (page === 'login') {
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginOtp').value = '';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginEmailError').textContent = '';
+                document.getElementById('loginOtpError').textContent = '';
+                document.getElementById('loginPasswordError').textContent = '';
+            } else {
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerOtp').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('registerConfirmPassword').value = '';
+                document.getElementById('registerEmailError').textContent = '';
+                document.getElementById('registerOtpError').textContent = '';
+                document.getElementById('registerPasswordError').textContent = '';
+                document.getElementById('registerConfirmPasswordError').textContent = '';
+            }
+        }
+        
+        // 切换到验证码登录模式
+        function switchToOtpMode() {
+            loginMode = 'otp';
+            document.getElementById('otpLoginSection').style.display = 'block';
+            document.getElementById('passwordLoginSection').style.display = 'none';
+            document.getElementById('otpModeBtn').style.opacity = '1';
+            document.getElementById('passwordModeBtn').style.opacity = '0.5';
+            updateLoginButton();
+        }
+        
+        // 切换到密码登录模式
+        function switchToPasswordMode() {
+            loginMode = 'password';
+            document.getElementById('otpLoginSection').style.display = 'none';
+            document.getElementById('passwordLoginSection').style.display = 'block';
+            document.getElementById('otpModeBtn').style.opacity = '0.5';
+            document.getElementById('passwordModeBtn').style.opacity = '1';
+            updateLoginButton();
+        }
+        
+        // 更新登录按钮状态
+        function updateLoginButton() {
+            const loginBtn = document.getElementById('loginBtn');
+            const email = document.getElementById('loginEmail').value.trim();
+            
+            if (!validateEmail(email)) {
+                loginBtn.disabled = true;
+                return;
+            }
+            
+            if (loginMode === 'otp') {
+                const otp = document.getElementById('loginOtp').value;
+                loginBtn.disabled = otp.length !== 8;
+            } else {
+                const password = document.getElementById('loginPassword').value;
+                loginBtn.disabled = !password || password.length < 6;
+            }
+        }
+        
+        // 更新注册按钮状态
+        function updateRegisterButton() {
+            const registerBtn = document.getElementById('registerBtn');
+            const email = document.getElementById('registerEmail').value.trim();
+            const otp = document.getElementById('registerOtp').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            
+            registerBtn.disabled = !validateEmail(email) || otp.length !== 8 || 
+                                   password.length < 6 || password !== confirmPassword;
+        }
+        
+        // ========== 登录页面事件 ==========
+        
+        // 登录邮箱输入验证
+        document.getElementById('loginEmail').addEventListener('input', function() {
+            const email = this.value.trim();
+            const errorEl = document.getElementById('loginEmailError');
+            const sendBtn = document.getElementById('sendOtpBtn');
+            
+            errorEl.textContent = '';
+            
+            if (email && !validateEmail(email)) {
+                errorEl.textContent = '请输入有效的邮箱地址';
+                sendBtn.disabled = true;
+            } else if (email) {
+                sendBtn.disabled = loginCountdown > 0;
+            } else {
+                sendBtn.disabled = true;
+            }
+            
+            updateLoginButton();
+        });
+        
+        // 登录验证码输入验证
+        document.getElementById('loginOtp').addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').slice(0, 8);
+            document.getElementById('loginOtpError').textContent = '';
+            updateLoginButton();
+        });
+        
+        // 登录密码输入验证
+        document.getElementById('loginPassword').addEventListener('input', function() {
+            document.getElementById('loginPasswordError').textContent = '';
+            updateLoginButton();
+        });
+        
+        // 发送登录验证码
+        async function sendLoginOTP() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const sendBtn = document.getElementById('sendOtpBtn');
+            const otpInput = document.getElementById('loginOtp');
+            
+            document.getElementById('loginEmailError').textContent = '';
+            
+            if (!validateEmail(email)) {
+                document.getElementById('loginEmailError').textContent = '请输入有效的邮箱地址';
+                return;
+            }
+            
+            sendBtn.disabled = true;
+            sendBtn.textContent = '发送中...';
+            showMessage('', '');
+            
+            try {
+                const { error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: { shouldCreateUser: false }
+                });
+                
+                if (error) throw error;
+                
+                showMessage('✅ 验证码已发送到您的邮箱（8位数字）', 'success');
+                otpInput.disabled = false;
+                otpInput.focus();
+                
+                // 倒计时
+                loginCountdown = 60;
+                sendBtn.textContent = `${loginCountdown}秒后重试`;
+                
+                loginTimer = setInterval(() => {
+                    loginCountdown--;
+                    if (loginCountdown <= 0) {
+                        clearInterval(loginTimer);
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = '重新获取';
+                    } else {
+                        sendBtn.textContent = `${loginCountdown}秒后重试`;
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('发送失败:', error);
+                showMessage('❌ ' + (error.message || '发送失败，请重试'), 'error');
+                sendBtn.disabled = false;
+                sendBtn.textContent = '获取验证码';
+            }
+        }
+        
+        // 处理登录
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const loginBtn = document.getElementById('loginBtn');
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = '登录中...';
+            showMessage('', '');
+            
+            try {
+                if (loginMode === 'otp') {
+                    // 验证码登录
+                    const otp = document.getElementById('loginOtp').value.trim();
+                    
+                    if (otp.length !== 8) {
+                        document.getElementById('loginOtpError').textContent = '请输入8位验证码';
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = '登录';
+                        return;
+                    }
+                    
+                    const { data, error } = await supabaseClient.auth.verifyOtp({
+                        email: email,
+                        token: otp,
+                        type: 'email'
+                    });
+                    
+                    if (error) throw error;
+                    
+                    showMessage('🎉 登录成功！欢迎，' + data.user.email, 'success');
+                    console.log('用户信息:', data);
+                    
+                    // 登录成功后跳转到数据中台页面
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                    
+                } else {
+                    // 密码登录
+                    const password = document.getElementById('loginPassword').value;
+                    
+                    if (!password || password.length < 6) {
+                        document.getElementById('loginPasswordError').textContent = '请输入密码';
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = '登录';
+                        return;
+                    }
+                    
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) throw error;
+                    
+                    showMessage('🎉 登录成功！欢迎，' + data.user.email, 'success');
+                    console.log('用户信息:', data);
+                    
+                    // 登录成功后跳转到数据中台页面
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                }
+                
+            } catch (error) {
+                console.error('登录失败:', error);
+                showMessage('❌ ' + (error.message || '登录失败，请检查您的凭据'), 'error');
+                loginBtn.disabled = false;
+                loginBtn.textContent = '登录';
+                
+                if (loginMode === 'otp') {
+                    document.getElementById('loginOtp').value = '';
+                }
+            }
+        }
+        
+        // ========== 注册页面事件 ==========
+        
+        // 注册邮箱输入验证
+        document.getElementById('registerEmail').addEventListener('input', function() {
+            const email = this.value.trim();
+            const errorEl = document.getElementById('registerEmailError');
+            const sendBtn = document.getElementById('sendRegisterOtpBtn');
+            
+            errorEl.textContent = '';
+            
+            if (email && !validateEmail(email)) {
+                errorEl.textContent = '请输入有效的邮箱地址';
+                sendBtn.disabled = true;
+            } else if (email) {
+                sendBtn.disabled = registerCountdown > 0;
+            } else {
+                sendBtn.disabled = true;
+            }
+            
+            updateRegisterButton();
+        });
+        
+        // 注册验证码输入验证
+        document.getElementById('registerOtp').addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').slice(0, 8);
+            document.getElementById('registerOtpError').textContent = '';
+            updateRegisterButton();
+        });
+        
+        // 注册密码输入验证
+        document.getElementById('registerPassword').addEventListener('input', function() {
+            const errorEl = document.getElementById('registerPasswordError');
+            errorEl.textContent = '';
+            if (this.value && this.value.length < 6) {
+                errorEl.textContent = '密码至少需要6位';
+            }
+            updateRegisterButton();
+        });
+        
+        // 确认密码输入验证
+        document.getElementById('registerConfirmPassword').addEventListener('input', function() {
+            const errorEl = document.getElementById('registerConfirmPasswordError');
+            const password = document.getElementById('registerPassword').value;
+            errorEl.textContent = '';
+            if (this.value && this.value !== password) {
+                errorEl.textContent = '两次密码不一致';
+            }
+            updateRegisterButton();
+        });
+        
+        // 发送注册验证码
+        async function sendRegisterOTP() {
+            const email = document.getElementById('registerEmail').value.trim();
+            const sendBtn = document.getElementById('sendRegisterOtpBtn');
+            const otpInput = document.getElementById('registerOtp');
+            
+            document.getElementById('registerEmailError').textContent = '';
+            
+            if (!validateEmail(email)) {
+                document.getElementById('registerEmailError').textContent = '请输入有效的邮箱地址';
+                return;
+            }
+            
+            sendBtn.disabled = true;
+            sendBtn.textContent = '发送中...';
+            showMessage('', '');
+            
+            try {
+                const { error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: { shouldCreateUser: true }
+                });
+                
+                if (error) throw error;
+                
+                showMessage('✅ 验证码已发送到您的邮箱（8位数字）', 'success');
+                otpInput.disabled = false;
+                otpInput.focus();
+                
+                // 倒计时
+                registerCountdown = 60;
+                sendBtn.textContent = `${registerCountdown}秒后重试`;
+                
+                registerTimer = setInterval(() => {
+                    registerCountdown--;
+                    if (registerCountdown <= 0) {
+                        clearInterval(registerTimer);
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = '重新获取';
+                    } else {
+                        sendBtn.textContent = `${registerCountdown}秒后重试`;
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('发送失败:', error);
+                showMessage('❌ ' + (error.message || '发送失败，请重试'), 'error');
+                sendBtn.disabled = false;
+                sendBtn.textContent = '获取验证码';
+            }
+        }
+        
+        // 处理注册
+        async function handleRegister() {
+            const email = document.getElementById('registerEmail').value.trim();
+            const otp = document.getElementById('registerOtp').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
+            
+            // 验证
+            document.getElementById('registerEmailError').textContent = '';
+            document.getElementById('registerOtpError').textContent = '';
+            document.getElementById('registerPasswordError').textContent = '';
+            document.getElementById('registerConfirmPasswordError').textContent = '';
+            
+            if (!validateEmail(email)) {
+                document.getElementById('registerEmailError').textContent = '请输入有效的邮箱地址';
+                return;
+            }
+            
+            if (otp.length !== 8) {
+                document.getElementById('registerOtpError').textContent = '请输入8位验证码';
+                return;
+            }
+            
+            if (password.length < 6) {
+                document.getElementById('registerPasswordError').textContent = '密码至少需要6位';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                document.getElementById('registerConfirmPasswordError').textContent = '两次密码不一致';
+                return;
+            }
+            
+            registerBtn.disabled = true;
+            registerBtn.textContent = '注册中...';
+            showMessage('', '');
+            
+            try {
+                // 先验证OTP
+                const { data, error } = await supabaseClient.auth.verifyOtp({
+                    email: email,
+                    token: otp,
+                    type: 'email'
+                });
+                
+                if (error) throw error;
+                
+                // 验证成功后设置密码
+                const { error: updateError } = await supabaseClient.auth.updateUser({
+                    password: password
+                });
+                
+                if (updateError) throw updateError;
+                
+                showMessage('🎉 注册成功！欢迎，' + email, 'success');
+                console.log('用户信息:', data);
+                
+                // 注册成功后跳转到数据中台页面
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                
+            } catch (error) {
+                console.error('注册失败:', error);
+                showMessage('❌ ' + (error.message || '注册失败，请重试'), 'error');
+                registerBtn.disabled = false;
+                registerBtn.textContent = '完成注册';
+                document.getElementById('registerOtp').value = '';
+            }
+        }
+        
+        // 初始化
+        window.addEventListener('load', () => {
+            document.getElementById('sendOtpBtn').disabled = true;
+            document.getElementById('sendRegisterOtpBtn').disabled = true;
+            document.getElementById('loginBtn').disabled = true;
+            document.getElementById('registerBtn').disabled = true;
+            document.getElementById('otpModeBtn').style.opacity = '1';
+            document.getElementById('passwordModeBtn').style.opacity = '0.5';
+        });
+        
+        // 赛博朋克数据流效果
+        function createDataStream() {
+            const dataStream = document.getElementById('dataStream');
+            const chars = '01█▓▒░▀▄▌▐│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌';
+            const columns = Math.floor(window.innerWidth / 25);
+            
+            for (let i = 0; i < columns; i++) {
+                const span = document.createElement('span');
+                span.textContent = chars[Math.floor(Math.random() * chars.length)];
+                span.style.left = (i * 25) + 'px';
+                span.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                span.style.animationDelay = (Math.random() * 3) + 's';
+                dataStream.appendChild(span);
+                
+                // 随机更换字符
+                setInterval(() => {
+                    span.textContent = chars[Math.floor(Math.random() * chars.length)];
+                }, Math.random() * 1500 + 800);
+            }
+        }
+        
+        createDataStream();
+    </script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算层 - 数据中台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary-color: #faad14;
+            --bg-dark: #0a0e27;
+            --bg-light: #141b2d;
+            --text-primary: #ffffff;
+            --text-secondary: #8c8c8c;
+            --card-bg: #1a1f35;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .back-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-title h1 {
+            font-size: 36px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .page-title .icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .page-title p {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .card h3 {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .card li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .card li:last-child {
+            border-bottom: none;
+        }
+        
+        .card li::before {
+            content: "✓ ";
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .tech-stack {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tech-stack h2 {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .tech-tag {
+            padding: 8px 16px;
+            background: rgba(250, 173, 20, 0.2);
+            border: 1px solid var(--primary-color);
+            border-radius: 20px;
+            color: var(--primary-color);
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="color: var(--primary-color);">⚙️ 计算层</h1>
+        <a href="dashboard.html" class="back-btn">← 返回首页</a>
+    </div>
+    
+    <div class="container">
+        <div class="page-title">
+            <div class="icon">⚙️</div>
+            <h1>计算层</h1>
+            <p>Computing Layer - 数据处理与计算的核心</p>
+        </div>
+        
+        <div class="content-grid">
+            <div class="card">
+                <h3>数据清洗</h3>
+                <ul>
+                    <li>数据去重处理</li>
+                    <li>缺失值补全</li>
+                    <li>数据格式标准化</li>
+                    <li>异常值检测与处理</li>
+                    <li>数据质量校验</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>数据转换</h3>
+                <ul>
+                    <li>ETL/ELT流程</li>
+                    <li>数据类型转换</li>
+                    <li>字段映射与关联</li>
+                    <li>数据聚合与汇总</li>
+                    <li>维度建模</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>离线计算</h3>
+                <ul>
+                    <li>批处理任务调度</li>
+                    <li>数据仓库建模</li>
+                    <li>历史数据分析</li>
+                    <li>报表数据生成</li>
+                    <li>数据归档处理</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>实时计算</h3>
+                <ul>
+                    <li>流式数据处理</li>
+                    <li>实时指标计算</li>
+                    <li>实时数据聚合</li>
+                    <li>窗口计算</li>
+                    <li>实时告警触发</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>机器学习</h3>
+                <ul>
+                    <li>特征工程</li>
+                    <li>模型训练与调优</li>
+                    <li>预测分析</li>
+                    <li>聚类分析</li>
+                    <li>推荐算法</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="tech-stack">
+            <h2>技术栈</h2>
+            <div class="tech-tags">
+                <span class="tech-tag">Apache Spark</span>
+                <span class="tech-tag">Flink</span>
+                <span class="tech-tag">Hive</span>
+                <span class="tech-tag">Presto</span>
+                <span class="tech-tag">ClickHouse</span>
+                <span class="tech-tag">TensorFlow</span>
+                <span class="tech-tag">PyTorch</span>
+                <span class="tech-tag">Airflow</span>
+                <span class="tech-tag">DolphinScheduler</span>
+                <span class="tech-tag">Pandas</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

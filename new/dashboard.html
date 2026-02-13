@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业级数据中台架构</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary-color: #1890ff;
+            --secondary-color: #52c41a;
+            --bg-dark: #0a0e27;
+            --bg-light: #141b2d;
+            --text-primary: #ffffff;
+            --text-secondary: #8c8c8c;
+            --card-bg: #1a1f35;
+            --purple: #722ed1;
+            --orange: #faad14;
+            --green: #52c41a;
+            --blue: #1890ff;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-email {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .logout-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .intro {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .intro h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .intro p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .layers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .layer-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .layer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--layer-color);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        
+        .layer-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .layer-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .layer-card.purple {
+            --layer-color: var(--purple);
+        }
+        
+        .layer-card.orange {
+            --layer-color: var(--orange);
+        }
+        
+        .layer-card.green {
+            --layer-color: var(--green);
+        }
+        
+        .layer-card.blue {
+            --layer-color: var(--blue);
+        }
+        
+        .layer-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: var(--layer-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .layer-card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            color: var(--layer-color);
+        }
+        
+        .layer-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .layer-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: var(--layer-color);
+            color: var(--bg-dark);
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .arrow-icon {
+            font-size: 24px;
+            color: var(--layer-color);
+            margin-top: 10px;
+        }
+        
+        /* 架构说明区域 */
+        .architecture-description {
+            margin-top: 60px;
+        }
+        
+        .architecture-description h2 {
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--primary-color);
+        }
+        
+        .description-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .desc-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--desc-color);
+        }
+        
+        .desc-card.purple {
+            --desc-color: var(--purple);
+        }
+        
+        .desc-card.orange {
+            --desc-color: var(--orange);
+        }
+        
+        .desc-card.green {
+            --desc-color: var(--green);
+        }
+        
+        .desc-card.blue {
+            --desc-color: var(--blue);
+        }
+        
+        .desc-card h3 {
+            font-size: 20px;
+            color: var(--desc-color);
+            margin-bottom: 15px;
+        }
+        
+        .desc-intro {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .desc-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .desc-card li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .desc-card li:last-child {
+            border-bottom: none;
+        }
+        
+        .desc-card li::before {
+            content: "▸ ";
+            color: var(--desc-color);
+            font-weight: bold;
+            margin-right: 6px;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .layers-grid,
+            .description-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .intro h2 {
+                font-size: 24px;
+            }
+            
+            .architecture-description h2 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏢 企业级数据中台架构</h1>
+        <div class="user-info">
+            <span class="user-email" id="userEmail">加载中...</span>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="intro">
+            <h2>数据中台四层架构</h2>
+            <p>从数据采集到应用落地，构建完整的企业级数据处理体系</p>
+        </div>
+        
+        <div class="layers-grid">
+            <!-- 数据采集层 -->
+            <div class="layer-card purple" onclick="navigateTo('data-collection.html')">
+                <div class="layer-number">1</div>
+                <div class="layer-icon">📊</div>
+                <h3>数据采集层</h3>
+                <p>从多种数据源采集原始数据，包括业务系统、日志、外部数据和实时数据流</p>
+                <div class="arrow-icon">→</div>
+            </div>
+            
+            <!-- 计算层 -->
+            <div class="layer-card orange" onclick="navigateTo('computing.html')">
+                <div class="layer-number">2</div>
+                <div class="layer-icon">⚙️</div>
+                <h3>计算层</h3>
+                <p>对数据进行清洗、转换、离线/实时计算和机器学习建模</p>
+                <div class="arrow-icon">→</div>
+            </div>
+            
+            <!-- 服务层 -->
+            <div class="layer-card green" onclick="navigateTo('service.html')">
+                <div class="layer-number">3</div>
+                <div class="layer-icon">🔌</div>
+                <h3>服务层</h3>
+                <p>将计算结果封装成标准化API服务，提供数据查询和订阅能力</p>
+                <div class="arrow-icon">→</div>
+            </div>
+            
+            <!-- 应用层 -->
+            <div class="layer-card blue" onclick="navigateTo('application.html')">
+                <div class="layer-number">4</div>
+                <div class="layer-icon">📱</div>
+                <h3>应用层</h3>
+                <p>基于数据服务构建数据大屏、BI报表、数据产品等业务应用</p>
+                <div class="arrow-icon">✓</div>
+            </div>
+        </div>
+        
+        <!-- 架构说明 -->
+        <div class="architecture-description">
+            <h2>架构说明</h2>
+            
+            <div class="description-grid">
+                <div class="desc-card purple">
+                    <h3>数据采集层</h3>
+                    <p class="desc-intro">负责从各种数据源采集原始数据，是数据中台的基础层。</p>
+                    <ul>
+                        <li>业务系统数据：CRM、ERP、订单系统等</li>
+                        <li>日志数据：应用日志、访问日志、操作日志</li>
+                        <li>外部数据：第三方API、爬虫数据、公开数据集</li>
+                        <li>实时数据流：Kafka、消息队列、IoT设备数据</li>
+                    </ul>
+                </div>
+                
+                <div class="desc-card orange">
+                    <h3>计算层</h3>
+                    <p class="desc-intro">对采集的数据进行清洗、转换、计算和建模。</p>
+                    <ul>
+                        <li>数据清洗：去重、补全、格式化、异常值处理</li>
+                        <li>数据转换：ETL/ELT流程、数据标准化</li>
+                        <li>离线计算：批处理任务、数据仓库建模</li>
+                        <li>实时计算：流式处理、实时指标计算</li>
+                        <li>机器学习：特征工程、模型训练、预测分析</li>
+                    </ul>
+                </div>
+                
+                <div class="desc-card green">
+                    <h3>服务层</h3>
+                    <p class="desc-intro">将计算结果封装成标准化的数据服务，供上层应用调用。</p>
+                    <ul>
+                        <li>数据API：RESTful API、GraphQL接口</li>
+                        <li>数据查询：SQL查询服务、多维分析</li>
+                        <li>数据订阅：实时数据推送、消息通知</li>
+                        <li>数据导出：报表生成、数据下载</li>
+                        <li>权限管理：数据访问控制、脱敏处理</li>
+                    </ul>
+                </div>
+                
+                <div class="desc-card blue">
+                    <h3>应用层</h3>
+                    <p class="desc-intro">基于数据服务构建的各类业务应用和数据产品。</p>
+                    <ul>
+                        <li>数据大屏：实时监控、可视化展示</li>
+                        <li>BI报表：经营分析、决策支持</li>
+                        <li>数据产品：用户画像、推荐系统、风控模型</li>
+                        <li>业务应用：精准营销、智能客服、供应链优化</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const CONFIG = {
+            url: 'https://zgfyqhhvotaunytjtcxi.supabase.co',
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnZnlxaGh2b3RhdW55dGp0Y3hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MDkxMDIsImV4cCI6MjA4NjM4NTEwMn0.C9mSuankyh-IvSlC91smtpWnodfyGcM7gylmFZChJ4A'
+        };
+        
+        let supabaseClient = window.supabase.createClient(CONFIG.url, CONFIG.key);
+        
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+            document.getElementById('userEmail').textContent = session.user.email;
+        }
+        
+        async function logout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = 'index.html';
+        }
+        
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+        
+        window.addEventListener('load', checkAuth);
+    </script>
+</body>
+</html>
